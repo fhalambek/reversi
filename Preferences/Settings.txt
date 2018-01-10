@@ -1,0 +1,3 @@
+language:hrv
+botSpeed:0.5
+animations:On

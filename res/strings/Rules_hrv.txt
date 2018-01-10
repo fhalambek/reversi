@@ -1,0 +1,5 @@
+Reversi je strateška igra za dva igraèa. Igra se igra na ploèi dimenzija 8 × 8 s 64 diska, koji su s jedne strane obojeni bijelom, a s druge strane crnom bojom. Igraèi naizmjence postavljaju diskove na ploèu tako da je njima dodijeljena boja diska okrenuta prema gore i da diskovima svoje boje u liniji omeðe protivnikove, koji tada mijenjaju boju. Igraè èiji su diskovi crne boje zapoèinje igru.
+
+Cilj igre je imati više diskova "svoje boje" kada ni jedan igraè ne bude mogao staviti disk.
+
+Igra Reversi poznata je i pod nazivom Othello.

@@ -1,0 +1,25 @@
+Stats:Statistika
+Wins by player:Pobjede (po igracu)
+Wins by color:Pobjede (po boji)
+Disks:Diskovi
+Main Menu:Glavni izbornik
+Play:Igraj
+Mode:Nacin
+Rules:Pravila
+Settings:Postavke
+About:O programu
+Bot VS Bot:Bot protiv bota
+Human VS Bot:Covjek protiv bota
+Human VS Human:Covjek protiv covjeka
+Easy:Lagano
+Medium:Srednje tesko
+Hard:Tesko
+Select bot 1:Odaberi bota 1
+Select bot 2:Odaberi bota 2
+Language:Jezik
+Bot speed:Brzina bota
+Animations:Animacije
+On:Ukljuèene
+Off:Iskljuèene
+Pause:Zaustavi
+Resume:Nastavi
