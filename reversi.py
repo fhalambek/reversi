@@ -2,26 +2,38 @@ from tkinter import *
 from time import sleep
 from threading import Thread
 from bot import easy, greedy, weighted
-from os import replace
+from os import replace, name
 from _tkinter import TclError
 
 pilImported = False
-import pip 
-def install(package):
-    pip.main(['install', package])
-    
+
+if(name == "posix"):
+    error = (ImportError,)
+elif(name == "nt"):
+    error = (ModuleNotFoundError, ImportError)
+
+
 try:
     from PIL import Image, ImageTk
     pilImported = True
-except(ModuleNotFoundError):
+except error:
     try:
+        try:
+            import pip
+        except error:
+            print("pip and Pillow libraries are not installed. Install one of them to view transitions.\n" +
+                  "Linux:   sudo apt-get install python3-pip\n         pip install Pillow\n" +
+                  "Windows: pip is installed, find it among installation files - Python/Python36-32/Scripts/")
+            raise ImportError
+        def install(package):
+            pip.main(['install', package])
         install("Pillow")
         from PIL import Image, ImageTk
         pilImported = True
     except(PermissionError):
         print("PIL not installed. Try running as administrator to view transitions.")
         pilImported = False
-    except(ModuleNotFoundError):
+    except error:
         print()
         pilImported = False
 
@@ -223,14 +235,14 @@ class SettingsView(Half):
     def __init__(self, master, position, color, hierarchy):
         Half.__init__(self, master, position, color, hierarchy)
         self.actionBar = ActionBar(self, HIERARCHY[hierarchy[0]][hierarchy[1]][2], color) 
-        self.languageLabel = Label(self, text = stringsDict["Language"], bg = color)
+        self.languageLabel = Label(self, text = stringsDict["Language"], bg = color, highlightthickness = 0)
         self.languageLabel.pack()
         var = StringVar()
         var.set(language)
         self.languageOM = OptionMenu(self, var, *LANGUAGES, command = self.omCommand)
         self.languageOM.config(bg = color, highlightthickness = 0)
         self.languageOM.pack()
-        self.botSpeedLabel = Label(self, text = stringsDict["Bot speed"], bg = color)
+        self.botSpeedLabel = Label(self, text = stringsDict["Bot speed"], bg = color, highlightthickness = 0)
         self.botSpeedLabel.pack()
         self.botSpeedScale = Scale(self, from_ = 1,
                                    to = 100,
@@ -243,7 +255,7 @@ class SettingsView(Half):
                                    cursor = "hand2")
         self.botSpeedScale.set((1-botSpeed)*100)
         self.botSpeedScale.pack()
-        self.animationsLabel = Label(self, text = stringsDict["Animations"], bg = color)
+        self.animationsLabel = Label(self, text = stringsDict["Animations"], bg = color, highlightthickness = 0)
         self.animationsLabel.pack()
         v = IntVar()
         v.set(animationsEnabled)
@@ -309,7 +321,7 @@ class MenuView(Half):
         self.actionBar = ActionBar(self, HIERARCHY[hierarchy[0]][hierarchy[1]][2], color)
         self.optionButtons = []
         for i in range(len(HIERARCHY[hierarchy[0]][hierarchy[1]][-1])):
-            self.optionButtons.append(Button(self, text = stringsDict[HIERARCHY[hierarchy[0]][hierarchy[1]][-1][i]]))
+            self.optionButtons.append(Button(self, text = stringsDict[HIERARCHY[hierarchy[0]][hierarchy[1]][-1][i]], highlightthickness = 0))
             self.optionButtons[i].targetFrame = HIERARCHY[hierarchy[0]][hierarchy[1]][3][i]
             self.optionButtons[i].bind("<Button-1>", self.buttonClick)
             self.optionButtons[i].place(x = (500 - 2*MARGIN_X) // 2, y = int((i+1)*(500 - 2*MARGIN_Y)/(len(HIERARCHY[hierarchy[0]][hierarchy[1]][-1])+1)), width = OPTION_BUTTON_WIDTH, height = OPTION_BUTTON_HEIGHT, anchor = CENTER)
@@ -362,7 +374,7 @@ class StatsView(Half):
         self.labels = [None, TurnLabel(self.turnFrame, 1), TurnLabel(self.turnFrame, -1)]
         self.turnFrame.pack(side = TOP, expand = YES, fill = X)
         self.charts = [ChartFrame(self, i, color) for i in (0, 1, 2)]
-        self.pauseButton = Button(self, text = stringsDict["Pause"], command = self.pause)
+        self.pauseButton = Button(self, text = stringsDict["Pause"], command = self.pause, highlightthickness = 0)
         self.pauseButton.place(x = 240, y = 120, anchor = CENTER)
         GameView.setStats(self)
     def pause(self):
@@ -419,7 +431,13 @@ class PM(object):
 class Cell(Button):
     availableCoordinates = [[],[],[]]
     def __init__(self, master, coordinates, fill):
-        Button.__init__(self, master = master, image = IMAGES[fill], width = CELL_SIZE, height = CELL_SIZE, bg = CELL_BG, bd = 1, highlightthickness = 1, padx = 0, pady = 0)
+        Button.__init__(self,
+                        master = master,
+                        image = IMAGES[fill],
+                        width = CELL_SIZE,
+                        height = CELL_SIZE,
+                        bg = CELL_BG, bd = 1,
+                        highlightthickness = name == "nt")
         self.bind("<Button>", cellPress)
         self.coordinates = coordinates
         self.reset()
@@ -683,7 +701,7 @@ class ChartFrame(Frame):
     chartNames = ["Disks", "Wins by color", "Wins by player"]
     def __init__(self, master, order, color):
         Frame.__init__(self, master, bg = color)
-        self.chartName = Label(self, text = stringsDict[ChartFrame.chartNames[order]], bg = color)
+        self.chartName = Label(self, text = stringsDict[ChartFrame.chartNames[order]], bg = color, highlightthickness = 0)
         self.chart = Frame(self, height = 50, bg = "white")
         self.blackLabel = Label(self.chart, bg = "black", bd = 0, highlightthickness = 0, height = 50, width = 0, image = IMAGES[0])
         self.blackLabel.pack(side = LEFT, fill = Y)
