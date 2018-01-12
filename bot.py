@@ -76,5 +76,5 @@ def weighted(field, possible, color, opp_color):
 
     return(bestpos)
             
-#git proba
+
         
