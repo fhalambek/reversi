@@ -7,33 +7,27 @@ from _tkinter import TclError
 
 pilImported = False
 
-if(name == "posix"):
-    error = (ImportError,)
-elif(name == "nt"):
-    error = (ModuleNotFoundError, ImportError)
-
-
 try:
     from PIL import Image, ImageTk
     pilImported = True
-except error:
+except ImportError:
     try:
         try:
             import pip
-        except error:
+        except ImportError:
             print("pip and Pillow libraries are not installed. Install one of them to view transitions.\n" +
                   "Linux:   sudo apt-get install python3-pip\n         pip install Pillow\n" +
-                  "Windows: pip is installed, find it among installation files - Python/Python36-32/Scripts/")
+                  "Windows: pip is installed, find it among installation files, e.g.: Python/Python36-32/Scripts/")
             raise ImportError
         def install(package):
             pip.main(['install', package])
         install("Pillow")
         from PIL import Image, ImageTk
         pilImported = True
-    except(PermissionError):
+    except PermissionError:
         print("PIL not installed. Try running as administrator to view transitions.")
         pilImported = False
-    except error:
+    except ImportError:
         print()
         pilImported = False
 
@@ -60,7 +54,7 @@ animationsEnabled = True
 stopBot = True
 pause = False
 
-class Game(Frame):
+class Game(Frame): #glavni frame unutar kojega se sve nalazi. self.master je Tk()
     def __init__(self):
         Frame.__init__(self)
         global IMAGES, backImage, DISKS
@@ -74,11 +68,11 @@ class Game(Frame):
         self.master.resizable(False, False)
         self.master.geometry(WINDOW_DIMS)
         SettingsView.loadSettings()
-        Game.loadStrings() #maknuti kasnije
+        Game.loadStrings()
         self.halves = [None, ImageView(self, position = 1, color = WINDOW_BG[0], hierarchy = (0, 0)), MenuView(master = self, position = 2, color = WINDOW_BG[1], hierarchy = (1, 0)), None]
         self.pack(expand = YES, fill = BOTH)
         self.master.protocol("WM_DELETE_WINDOW", lambda: closeWindow(self.master))
-    def switch(self, target, reverse, position):
+    def switch(self, target, reverse, position): #poziva se kada trebaju mijenjati polovice ekrana
         global stopBot, pause
         pause = False
         stopBot = True
@@ -88,7 +82,7 @@ class Game(Frame):
         self.halves[3 - reverse * 3] = HIERARCHY[target[0]][target[1]][0](master = self, position = 3 - reverse * 3, color = WINDOW_BG[target[0]%2], hierarchy = target)
         runnables = [self.frameSwapAnimationRight, self.frameSwapAnimation]
         runnables[position + reverse > 1](reverse)
-    def frameSwapAnimation(self, reverse):
+    def frameSwapAnimation(self, reverse): #ako se mijenjaju obije polovice
         def postProcessing(self, reverse):
             flag = None
             for i, j in enumerate(self.halves):
@@ -112,7 +106,7 @@ class Game(Frame):
             self.after(10, self.halves[2-reverse].move, 0, transition, postProcessing, self, reverse)
         else:
             postProcessing(self, reverse)
-    def frameSwapAnimationRight(self, reverse):
+    def frameSwapAnimationRight(self, reverse): #ako se mijenja desna polovica
         def postProcessing(self, reverse):
             again = self.halves[3].replace(2)
             self.halves[2].destroy()
@@ -173,7 +167,7 @@ class Game(Frame):
         modeMenuButtonText = ("Bot VS Bot", "Human VS Bot", "Human VS Human")
         botMenuButtonText = ("Easy", "Medium", "Hard")
 
-class TransitionImage(Button):
+class TransitionImage(Label): #overlay sa screenshotom za fade in efekt
     def __init__(self, master, position, transparent, hierarchy, hierarchy2 = None):
         Label.__init__(self, master, image = IMAGES[0], width = 500, height = 500, bd = 0, highlightthickness = 0, bg = WINDOW_BG[hierarchy[0]%2])
         self.transparent = transparent
@@ -196,7 +190,7 @@ class TransitionImage(Button):
         self.config(image = self.frameImage)
         master.after(10, self.setAlpha, frameNumber + 1, postProcess, master, reverse)
      
-class Half(Frame):
+class Half(Frame): #ono sto je zajednicko svim tim frameovima/polovicama prozora
     def __init__(self, master, position, color, hierarchy):
         Frame.__init__(self, master, bg = color, padx = MARGIN_X, pady = MARGIN_Y)
         self.place(x = (position-1) * 500, y = 0, width = 500, height = 500)
@@ -215,11 +209,11 @@ class Half(Frame):
         self.lift(t)
         master.after(10, self.move, frameNumber + 1, t, pp, master, reverse)
 
-class ImageView(Half):
+class ImageView(Half): #na pocetnom zaslonu s lijeve strane.. tu bi mogla doci neka zgodna slika
     def __init__(self, master, position, color, hierarchy):
         Half.__init__(self, master, position, color, hierarchy)
 
-class TextView(Half):
+class TextView(Half): #pravila i o igri
     def __init__(self, master, position, color, hierarchy):
         Half.__init__(self, master, position, color, hierarchy)
         self.actionBar = ActionBar(self, HIERARCHY[hierarchy[0]][hierarchy[1]][2], color)
@@ -231,7 +225,7 @@ class TextView(Half):
         self.textMsg.pack()
         file.close()
 
-class SettingsView(Half):
+class SettingsView(Half): #onaj frame s postavkama
     def __init__(self, master, position, color, hierarchy):
         Half.__init__(self, master, position, color, hierarchy)
         self.actionBar = ActionBar(self, HIERARCHY[hierarchy[0]][hierarchy[1]][2], color) 
@@ -270,11 +264,11 @@ class SettingsView(Half):
                                        bg = color,
                                        selectcolor = WINDOW_BG[1]))
             self.rb[i].pack()
-    def rbCommand(var):
+    def rbCommand(var): #kad se stisne na radiobutton
         global animationsEnabled
         animationsEnabled = var
         SettingsView.saveSettings()
-    def sCommand(var):
+    def sCommand(var): #kad se pomakne onaj slider
         global botSpeed
         botSpeed = 1-(int(var)/100)
         SettingsView.saveSettings()
@@ -282,7 +276,7 @@ class SettingsView(Half):
         self.actionBar.refreshLanguage()
         for i, j in zip(("Language", "Bot speed", "Animations", "Off", "On"), (self.languageLabel, self.botSpeedLabel, self.animationsLabel, self.rb[0], self.rb[1])):
             j.config(text = stringsDict[i])
-    def omCommand(self, var):
+    def omCommand(self, var): #kad se u optionMenuu promijeni jezik
         global language
         language = var[:3].lower()
         Game.loadStrings()
@@ -315,7 +309,7 @@ class SettingsView(Half):
         
 
     
-class MenuView(Half):
+class MenuView(Half): #oni frameovi s nekoliko gumba za odabir
     def __init__(self, master, position, color, hierarchy):
         Half.__init__(self, master, position, color, hierarchy)
         self.actionBar = ActionBar(self, HIERARCHY[hierarchy[0]][hierarchy[1]][2], color)
@@ -344,7 +338,7 @@ class MenuView(Half):
         for i in range(len(self.optionButtons)):
             self.optionButtons[i].config(text = stringsDict[HIERARCHY[self.myHierarchy[0]][self.myHierarchy[1]][-1][i]])
 
-class GameView(Half):
+class GameView(Half): #prikazuje plocu
     stats = None
     def __init__(self, master, position, color, hierarchy):
         Half.__init__(self, master, position, color, hierarchy)
@@ -361,12 +355,12 @@ class GameView(Half):
             global stopBot
             resetBoard()
             stopBot = False
-            PM.startGame() #srediti da se ovo pokrece tek nakon sto se postavi view
+            PM.startGame()
         return (0,)
     def setStats(stats):
         GameView.stats = stats
 
-class StatsView(Half):
+class StatsView(Half): #ono s lijeve strane ploce sto prikazuje info o igri
     def __init__(self, master, position, color, hierarchy):
         Half.__init__(self, master, position, color, hierarchy)
         self.actionBar = ActionBar(self, HIERARCHY[hierarchy[0]][hierarchy[1]][2], color)
@@ -390,7 +384,7 @@ class StatsView(Half):
             for i in self.charts: i.upDate()
         except(TclError, RuntimeError):
             return
-    def replace(self, newPosition):
+    def replace(self, newPosition): #sto se dogodi kad mijenja poziciju na ekranu
         super(StatsView, self).replace(newPosition)
         self.actionBar.enableButton(not(newPosition - 1), 0)
         return (newPosition == 2, self.myHierarchy)
@@ -402,9 +396,9 @@ HIERARCHY = (((ImageView, "", (0, 0), (1, 0)),),
              ((MenuView, "Select bot 1", (2, 0), ((4, 0),)*4, botMenuButtonText), (MenuView, "Select bot 1", (2, 0), ((4, 1),)*4, botMenuButtonText), (StatsView, "Stats", (2, 0), (4, 2))),
              ((MenuView, "Select bot 2", (3, 0), ((5, 0),)*4, botMenuButtonText), (StatsView, "Stats", (3, 1), (5, 1)), (GameView, "Human VS Human", (3, 2))),
              ((StatsView, "Stats", (4, 0), (6, 0)), (GameView, "Human VS Bot", (4, 1))),
-             ((GameView, "Bot VS Bot", (5, 0)),))
+             ((GameView, "Bot VS Bot", (5, 0)),))#struktura programa (klasa, naslov, kamoNazad[, kamoNaprijed, stringoviZaGumbePremaNaprijed])
 
-class PM(object):
+class PM(object): #brine o tijeku igre, koji su botovi, tko je na redu itd.
     player = 1
     bots = [None, 8, 8]
     bot = 8
@@ -443,7 +437,7 @@ class Cell(Button):
         self.reset()
         self.grid(row = coordinates[0], column = coordinates[1])
         
-    def switch(self, fill):
+    def switch(self, fill): #mijenja boju polja
         self.fill = fill
         try:
             self.config(image = IMAGES[fill])
@@ -460,18 +454,18 @@ class Cell(Button):
         else:
             self.switch(0)
         
-def p(x, y):
+def p(x, y): #pazi na rub ploce
     if (x >= 0 and y >= 0 and x < 8 and y < 8):
         return True
     return False
-def block(i = True, o = True):
+def block(i = True, o = True): #blokira sav IO programa
     global blockInOut
     blockInOut = (i, o)
-def cBlock(i = True, o = True):
+def cBlock(i = True, o = True): #blokira klikanje i bojanje celija
     global ci, co
     ci = i
     co = o
-def closeWindow(window):
+def closeWindow(window): #poziva se kad netko stisne X gumb gore desno, gasi program
     cBlock()
     block()
     for i in range(25):
@@ -526,20 +520,20 @@ def resetBoard(): #prije pocetka svake partije resetira/postavlja plocu
     for i in range(8):
         for j in range(8):
             table[i][j].reset()
-    if(animationsEnabled):
+    if(animationsEnabled and name != "posix"):
         cdaThread = Thread(target = createDisksAnimation)
         cdaThread.start()
     else:
         createDisksAnimation()
     
-def getScore():
+def getScore(): #ovo broji diskove na ploci
     l = [0, 0, 0]
     for i in range(8):
         for j in range(8):
             l[table[i][j].fill] += 1
     return l
 
-def getFrame(fn, p, d):
+def getFrame(fn, p, d): #ovo se koristi u cellAnimation - daje sliku za neki frame u animaciji
     if(fn == 7):
         return IMAGES[p]
     else:
@@ -547,7 +541,7 @@ def getFrame(fn, p, d):
             return DISKS[-1][fn]
         return DISKS[(d-4)*p+4][(fn-3)*p+3]
 
-def gameOver():
+def gameOver(): #kad je jedna partija gotova, ovo biljezi tko je pobjedio i poziva funkciju za resetirati plocu
     global winCount
     score = getScore()
     if(score[-1] > score[1]):
@@ -560,11 +554,11 @@ def gameOver():
     winCount[1][winColor * PM.seatChanged] += 1
     resetBoard()
 
-def cellPress(event, y = 8):
+def cellPress(event, y = 8): #kad se klikne na neko polje
     if(y == 8):
-        coordinates = event.widget.coordinates #necemo se zafrkavat s getterima i setterima
+        coordinates = event.widget.coordinates
     else: coordinates = event, y
-    if(coordinates in Cell.availableCoordinates[PM.player] and not(blockInOut[0] or blockInOut[1] or (y == 8 and PM.bot != 8) or ci or co)):
+    if(coordinates in Cell.availableCoordinates[PM.player] and not(blockInOut[0] or blockInOut[1] or (y == 8 and PM.bot != 8) or ci or co or pause)):
         cBlock(o = False)
         markAvailableCoordinates(False)
         if(animationsEnabled):
@@ -579,7 +573,7 @@ def cellPress(event, y = 8):
                     if(i < table[coordinates[0]][coordinates[1]].lenAC[PM.player][j] and not(blockInOut[1] or co)):
                         temp = [coordinates[k] + DIRECTIONS[j][k]*(i+1) for k in (0, 1)]
                         table[temp[0]][temp[1]].switch(PM.player)
-            PM.switchPlayer(-PM.player) #da, ovaj isti kod je u cellAnimation funkciji, ali 10 redaka vise = >10% rada CPUa manje
+            PM.switchPlayer(-PM.player)
             getAvailableCoordinates()
             markAvailableCoordinates()
             GameView.stats.upDate()
@@ -591,7 +585,7 @@ def cellPress(event, y = 8):
                 markAvailableCoordinates()
             cBlock(False, False)
         
-def createDisks(diskInfo):
+def createDisks(diskInfo): #postavlja novi disk na plocu
     if(animationsEnabled):
         for i in range(len(DISKS[0])):
             for j in diskInfo:
@@ -602,8 +596,8 @@ def createDisks(diskInfo):
     for i in diskInfo:
         table[i[0]][i[1]].switch(i[2])
 
-def cellAnimation(coordinates, cellsToColor, directionLengths):
-    createDisks(((*coordinates, PM.player),))
+def cellAnimation(coordinates, cellsToColor, directionLengths): #animacija zamjene diskova
+    createDisks(((coordinates[0], coordinates[1], PM.player),))
     for i in range(max(directionLengths)):
         for frameNumber in range(len(DISKS[0])+1):
             for j in range(9):
@@ -628,7 +622,7 @@ def cellAnimation(coordinates, cellsToColor, directionLengths):
         markAvailableCoordinates()
     cBlock(False, False)
 
-def getCellsToColor(direction, coordinates, fill):
+def getCellsToColor(direction, coordinates, fill): #vraca listu polja koja ce se obojati pritiskom na odredeno polje
     if(direction == (0, 0)):
         return 0
     cR, cC = coordinates[0] + direction[0], coordinates[1] + direction[1]
@@ -642,7 +636,7 @@ def getCellsToColor(direction, coordinates, fill):
     return []
 
 
-class ActionBar(Frame):
+class ActionBar(Frame): #onaj dio na vrhu MenuViewa i StatsViewa gdje pise naslov i gdje je gumb za nazad
     def __init__(self, master, targetFrame, color):
         Frame.__init__(self, master)
         self.config(bg = color)
@@ -678,7 +672,7 @@ class ActionBar(Frame):
     def refreshLanguage(self):
         self.nameLabel.config(text = stringsDict[HIERARCHY[self.master.myHierarchy[0]][self.master.myHierarchy[1]][1]])
 
-class TurnLabel(Label):
+class TurnLabel(Label): #oni kvadrati crni i bijeli koji oznacuju tko je na redu
     def __init__(self, master, color):
         Label.__init__(self, master, bg = PLAYERS[color], image = IMAGES[0],
                        width = 50, height = 50, highlightcolor = PLAYERS[color], highlightbackground = PLAYERS[color])
@@ -697,7 +691,7 @@ class TurnLabel(Label):
             self.config(highlightthickness = 0)
             self.pack(padx = 10, pady = 10)
 
-class ChartFrame(Frame):
+class ChartFrame(Frame): #dio StatsViewa gdje su chartovi
     chartNames = ["Disks", "Wins by color", "Wins by player"]
     def __init__(self, master, order, color):
         Frame.__init__(self, master, bg = color)
