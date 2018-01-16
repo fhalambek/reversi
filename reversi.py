@@ -167,7 +167,7 @@ class Game(Frame): #glavni frame unutar kojega se sve nalazi. self.master je Tk(
         modeMenuButtonText = ("Bot VS Bot", "Human VS Bot", "Human VS Human")
         botMenuButtonText = ("Easy", "Medium", "Hard")
 
-class TransitionImage(Label): #overlay sa screenshotom za fade in efekt
+class TransitionImage(Label): #overlay sa screenshotom za fade in efekat
     def __init__(self, master, position, transparent, hierarchy, hierarchy2 = None):
         Label.__init__(self, master, image = IMAGES[0], width = 500, height = 500, bd = 0, highlightthickness = 0, bg = WINDOW_BG[hierarchy[0]%2])
         self.transparent = transparent
