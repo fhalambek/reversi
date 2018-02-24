@@ -10,6 +10,7 @@ pilImported = False
 try:
     from PIL import Image, ImageTk
     pilImported = True
+
 except ImportError:
     try:
         try:
@@ -42,7 +43,7 @@ DIRECTIONS = [((i//3)-1, (i%3)-1) for i in range(9)]
 PLAYERS = [None, "black", "white"]
 BOTS = [easy, greedy, weighted]
 LANGUAGES = ("hrvatski", "English")
-OPTION_BUTTON_WIDTH = 125
+OPTION_BUTTON_WIDTH = 250
 OPTION_BUTTON_HEIGHT = 50
 
 blockInOut = (False, False) #program input i output
@@ -109,11 +110,12 @@ class Game(Frame): #glavni frame unutar kojega se sve nalazi. self.master je Tk(
     def frameSwapAnimationRight(self, reverse): #ako se mijenja desna polovica
         def postProcessing(self, reverse):
             again = self.halves[3].replace(2)
+            print(again)
             self.halves[2].destroy()
             del self.halves[2]
             self.halves.append(None)
-            if(again[0]): self.switch((again[1][0] + 1, again[1][1]), 0, 2)
             block(0, 0)
+            if(again[0]): self.switch((again[1][0] + 1, again[1][1]), 0, 2)
         if(pilImported):
             transition = TransitionImage(master = self,
                                          position = 2,
@@ -132,36 +134,36 @@ class Game(Frame): #glavni frame unutar kojega se sve nalazi. self.master je Tk(
         global stringsDict
         for line in lines:
             key, value = tuple(line.split(":"))  #maknuti ovaj repr ako nam ne treba
-            stringsDict[key] = value[:-1]
+            stringsDict[key] = value[:-1].upper()
         file.close()
         
     def initializeStrings():
         global stringsDict, selectBotText, mainMenuButtonText, modeMenuButtonText, botMenuButtonText
-        stringsDict = {"Stats":"Stats",
-                       "Wins by player":"Wins by player",
-                       "Wins by color":"Wins by color",
-                       "Disks":"Disks",
-                       "Main Menu":"Main Menu",
-                       "Play":"Play",
-                       "Mode":"Mode",
-                       "Rules":"Rules",
-                       "Settings":"Settings",
-                       "About":"About",
-                       "Bot VS Bot":"Bot VS Bot",
-                       "Human VS Bot":"Human VS Bot",
-                       "Human VS Human":"Human VS Human",
-                       "Easy":"Easy",
-                       "Medium":"Medium",
-                       "Hard":"Hard",
-                       "Select bot 1":"Select bot 1",
-                       "Select bot 2":"Select bot 2",
-                       "Language":"Language",
-                       "Bot speed":"Bot speed",
-                       "Animations":"Animations",
-                       "On":"On",
-                       "Off":"Off",
-                       "Pause":"Pause",
-                       "Resume":"Resume"}
+        stringsDict = {"Stats":"STATS",
+                       "Wins by player":"WINS BY PLAYER",
+                       "Wins by color":"WINS BY COLOR",
+                       "Disks":"DISKS",
+                       "Main Menu":"MAIN MENU",
+                       "Play":"PLAY",
+                       "Mode":"MODE",
+                       "Rules":"RULES",
+                       "Settings":"SETTINGS",
+                       "About":"ABOUT",
+                       "Bot VS Bot":"BOT VS BOT",
+                       "Human VS Bot":"HUMAN VS BOT",
+                       "Human VS Human":"HUMAN VS HUMAN",
+                       "Easy":"EASY",
+                       "Medium":"MEDIUM",
+                       "Hard":"HARD",
+                       "Select bot 1":"SELECT BOT 1",
+                       "Select bot 2":"SELECT BOT 2",
+                       "Language":"LANGUAGE",
+                       "Bot speed":"BOT SPEED",
+                       "Animations":"ANIMATIONS",
+                       "On":"ON",
+                       "Off":"OFF",
+                       "Pause":"PAUSE",
+                       "Resume":"RESUME"}
         selectBotText = ("Select bot 1", "Select bot 2")
         mainMenuButtonText = ("Play", "Rules", "Settings", "About")
         modeMenuButtonText = ("Bot VS Bot", "Human VS Bot", "Human VS Human")
@@ -212,6 +214,9 @@ class Half(Frame): #ono sto je zajednicko svim tim frameovima/polovicama prozora
 class ImageView(Half): #na pocetnom zaslonu s lijeve strane.. tu bi mogla doci neka zgodna slika
     def __init__(self, master, position, color, hierarchy):
         Half.__init__(self, master, position, color, hierarchy)
+        self.picture = PhotoImage(file = "front.png")
+        self.label = Label(self, image = self.picture)
+        self.label.place(x = 0, y = 0, width = 480, height = 480)
 
 class TextView(Half): #pravila i o igri
     def __init__(self, master, position, color, hierarchy):
@@ -230,14 +235,14 @@ class SettingsView(Half): #onaj frame s postavkama
         Half.__init__(self, master, position, color, hierarchy)
         self.actionBar = ActionBar(self, HIERARCHY[hierarchy[0]][hierarchy[1]][2], color) 
         self.languageLabel = Label(self, text = stringsDict["Language"], bg = color, highlightthickness = 0)
-        self.languageLabel.pack()
+        self.languageLabel.pack(pady = (50, 0))
         var = StringVar()
         var.set(language)
         self.languageOM = OptionMenu(self, var, *LANGUAGES, command = self.omCommand)
-        self.languageOM.config(bg = color, highlightthickness = 0)
+        self.languageOM.config(bg = color, highlightthickness = 0, width = 15)
         self.languageOM.pack()
         self.botSpeedLabel = Label(self, text = stringsDict["Bot speed"], bg = color, highlightthickness = 0)
-        self.botSpeedLabel.pack()
+        self.botSpeedLabel.pack(pady = (20, 0))
         self.botSpeedScale = Scale(self, from_ = 1,
                                    to = 100,
                                    orient = HORIZONTAL,
@@ -250,7 +255,7 @@ class SettingsView(Half): #onaj frame s postavkama
         self.botSpeedScale.set((1-botSpeed)*100)
         self.botSpeedScale.pack()
         self.animationsLabel = Label(self, text = stringsDict["Animations"], bg = color, highlightthickness = 0)
-        self.animationsLabel.pack()
+        self.animationsLabel.pack(pady = (20, 0))
         v = IntVar()
         v.set(animationsEnabled)
         self.rb = []
@@ -262,6 +267,7 @@ class SettingsView(Half): #onaj frame s postavkama
                                        command = lambda: SettingsView.rbCommand(v.get()),
                                        indicatoron = 0,
                                        bg = color,
+                                       width = 20,
                                        selectcolor = WINDOW_BG[1]))
             self.rb[i].pack()
     def rbCommand(var): #kad se stisne na radiobutton
@@ -315,7 +321,7 @@ class MenuView(Half): #oni frameovi s nekoliko gumba za odabir
         self.actionBar = ActionBar(self, HIERARCHY[hierarchy[0]][hierarchy[1]][2], color)
         self.optionButtons = []
         for i in range(len(HIERARCHY[hierarchy[0]][hierarchy[1]][-1])):
-            self.optionButtons.append(Button(self, text = stringsDict[HIERARCHY[hierarchy[0]][hierarchy[1]][-1][i]], highlightthickness = 0))
+            self.optionButtons.append(Button(self, text = stringsDict[HIERARCHY[hierarchy[0]][hierarchy[1]][-1][i]], highlightthickness = 0, font = ("Verdana", 14)))
             self.optionButtons[i].targetFrame = HIERARCHY[hierarchy[0]][hierarchy[1]][3][i]
             self.optionButtons[i].bind("<Button-1>", self.buttonClick)
             self.optionButtons[i].place(x = (500 - 2*MARGIN_X) // 2, y = int((i+1)*(500 - 2*MARGIN_Y)/(len(HIERARCHY[hierarchy[0]][hierarchy[1]][-1])+1)), width = OPTION_BUTTON_WIDTH, height = OPTION_BUTTON_HEIGHT, anchor = CENTER)
@@ -368,7 +374,7 @@ class StatsView(Half): #ono s lijeve strane ploce sto prikazuje info o igri
         self.labels = [None, TurnLabel(self.turnFrame, 1), TurnLabel(self.turnFrame, -1)]
         self.turnFrame.pack(side = TOP, expand = YES, fill = X)
         self.charts = [ChartFrame(self, i, color) for i in (0, 1, 2)]
-        self.pauseButton = Button(self, text = stringsDict["Pause"], command = self.pause, highlightthickness = 0)
+        self.pauseButton = Button(self, text = stringsDict["Pause"].upper(), command = self.pause, highlightthickness = 0, height = 1, width = 10, font = ("Verdana", 15))
         self.pauseButton.place(x = 240, y = 120, anchor = CENTER)
         GameView.setStats(self)
     def pause(self):
@@ -591,7 +597,7 @@ def createDisks(diskInfo): #postavlja novi disk na plocu
             for j in diskInfo:
                 if(not(blockInOut[1] or co)):
                     table[j[0]][j[1]].config(image = getFrame(fn = i, p = j[2], d = 4))
-            sleep(animationSpeed)
+            sleep(.03)
             if(blockInOut[1] or co): return
     for i in diskInfo:
         table[i[0]][i[1]].switch(i[2])
